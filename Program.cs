@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -13,18 +14,16 @@ namespace Coloring
 			string filePath = @".\input\";//visual studio code
 			string fileName = "test1.txt";
 
-			int n;
+			int n, maxColor = 0;
 			int[][] data;
-			int[] order;
-			int[] level;
-			int[] color;
-			int maxColor = 0;
+			List<int> order;
+			int[] level, color;
 
 			#region readfile and process data
 			StreamReader file = new StreamReader(Path.Combine(filePath, fileName));
 			n = int.Parse(file.ReadLine());
 			data = new int[n][];
-			order = Enumerable.Range(0, n).ToArray();
+			order = Enumerable.Range(0, n).ToList();
 			level = new int[n];
 			color = new int[n];
 			for (int i = 0; i < n; i++)
@@ -40,34 +39,34 @@ namespace Coloring
 			}
 			file.Close();
 
-			order = order.OrderByDescending(num => level[num]).ToArray();
+			order = order.OrderBy(num => level[num]).ToList();
 			#endregion
 
-			for (int i = 0; i < n; i++)
+			for (int i = order.Count - 1; i > -1; i--)
 			{
 				int ii = order[i];
-				if (color[ii] == 0)
+				maxColor++;
+				color[ii] = maxColor;
+				order.RemoveAt(i);
+				for (int j = order.Count - 1; j > -1; j--)
 				{
-					maxColor++;
-					color[ii] = maxColor;
-					for (int j = 0; j < n; j++)
+					var jj = order[j];
+
+					bool nearColorII = false;
+					for (int z = 0; z < n; z++)
 					{
-						var jj = order[j];
-						if (ii == jj || color[jj] != 0)
-							continue;
-
-						bool nearColorII = false;
-						for (int z = 0; z < n; z++)
+						if (data[jj][z] == 1 && color[z] == color[ii])
 						{
-							if (data[jj][z] == 1 && color[z] == color[ii])
-							{
-								nearColorII = true;
-								break;
-							}
+							nearColorII = true;
+							break;
 						}
+					}
 
-						if (!nearColorII)
-							color[jj] = maxColor;
+					if (!nearColorII)
+					{
+						color[jj] = maxColor;
+						order.RemoveAt(j);
+						i--;
 					}
 				}
 			}
